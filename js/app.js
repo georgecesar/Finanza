@@ -421,23 +421,22 @@ function eventListeners() {
     }
   }
 
-  document.addEventListener('keydown', keydown => {
-    console.log(keydown)
-    if (keydown.code.includes("Digit") && keydown.shiftKey == false || keydown.code.includes("Period") || keydown.key.includes("+") || keydown.code.includes("Backspace") && notesInput.value == '' || keydown.code.includes("Slash")) {
-      document.getElementById("amount-input").focus();
-    }
-    else {
-      document.getElementById("notes-input").focus();
-      document.getElementById("notes-input").classList.remove('zero-opacity');
-    }
-  })
+  // document.addEventListener('keydown', keydown => {
+  //   console.log(keydown)
+  //   if (keydown.code.includes("Digit") && keydown.shiftKey == false || keydown.code.includes("Period") || keydown.key.includes("+") || keydown.code.includes("Backspace") && notesInput.value == '' || keydown.code.includes("Slash")) {
+  //     document.getElementById("amount-input").focus();
+  //   }
+  //   else {
+  //     document.getElementById("notes-input").focus();
+  //     document.getElementById("notes-input").classList.remove('zero-opacity');
+  //   }
+  // })
 }
-// beginning of app
+
 // when DOMContentLoaded function eventListeners loads
 document.addEventListener("DOMContentLoaded", function () {
   eventListeners();
   document.getElementById('container').classList.remove("no-show")
   document.getElementById('container').classList.add("initial-animation")
-  console.log(document.getElementById('container').classList.value);
   
 });
