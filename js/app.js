@@ -391,11 +391,11 @@ function eventListeners() {
     if (event.target.classList.contains("edit-icon")) {
       if (ui.editMode == false) {
         ui.editExpense(event.target.parentElement);
+        document.getElementById("amount-input").focus();
       }
     } else if (event.target.classList.contains("delete-icon") && ui.editMode == false) {
       ui.deleteExpense(event.target.parentElement);
     }
-    document.getElementById("amount-input").focus();
   });
 
   // category change
