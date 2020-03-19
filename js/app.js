@@ -254,6 +254,7 @@ class UI {
     }
     this.editMode = false;
     this.updateRadios("reset")
+    this.notesInput.placeholder = "Notes"
 
     // remove selected state on submission
     let selected = document.querySelector('.selected')
@@ -352,8 +353,8 @@ class UI {
     parent.classList.add('selected')
     this.display.classList.add('display-blue')
     this.display.classList.remove('display-black')
-    if (notes == '') {
-      this.notesInput.classList.add('zero-opacity')
+    if (notes == "") {
+      this.notesInput.placeholder = ""
     }
   }
 
