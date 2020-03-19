@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="css/ui.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
+  <link rel="manifest" href="favicon/site.webmanifest">
+  <link rel="mask-icon" href="favicon/safari-pinned-tab.svg" color="#5bbad5">
+  <meta name="msapplication-TileColor" content="#da532c">
+  <meta name="theme-color" content="#ffffff">
+  <title>Finanza</title>
+  <style>
+  </style>
+</head>
+
+<body>
+
+  <div class="container no-show" id="container">
+
+    <!-- Expense form -->
+    <form id="expense-form" class="expense-form">
+      <div class="display" id="display">
+        <input type="number" step="0.01" class="amount-display" id="amount-input" placeholder="$" autofocus>
+        <input type="text" class="notes-display" id="notes-input" placeholder="Notes">
+      </div>
+      <div class="categories-icons" id="expense-input">
+        <label class="radio-zone dark-label first">
+          <input type="radio" class="radio-button" name="radio-category" value="🍕">
+          🍕</label>
+        <label class="radio-zone dark-label">
+          <input type="radio" class="radio-button" name="radio-category" value="⛽️">
+          ⛽️</label>
+        <label class="radio-zone dark-label">
+          <input type="radio" class="radio-button" name="radio-category" value="⚙️">
+          ⚙️</label>
+        <label class="radio-zone dark-label last">
+          <input type="radio" class="radio-button" name="radio-category" value="🥑">
+          🥑</label>
+      </div>
+      <button type="submit" class="submit-button" id="expense-submit">Add</button>
+    </form>
+
+    <!-- Summary -->
+    <div class="summary">
+      <div class="income">
+        <span class="text-uppercase info-title">Income</span>
+        <span class="budget-icon"><i class="fas fa-money-bill-alt"></i></span>
+        <span class="info-amount" id="budget"><span id="budget-amount">0</span></span>
+      </div>
+      <div class="expenses">
+        <span class="text-uppercase info-title">Expenses</span>
+        <span class="expense-icon"><i class="far fa-credit-card"></i></span>
+        <span class="info-amount" id="expense"><span id="expense-amount">0</span>
+        </span>
+      </div>
+      <div class="balance">
+        <span class="text-uppercase info-title">Balance</span>
+        <span class="balance-icon"><i class="fas fa-dollar-sign"></i></span>
+        <span class="info-amount" id="balance"><span id="balance-amount">0</span>
+        </span>
+      </div>
+    </div>
+
+    <!-- List -->
+    <div class="list-box no-show" id="list-box">
+      <div class="list" id="expense-list">
+        <!-- <div class="heading-row">
+          <div>Category</div>
+          <div>Date</div>
+          <div>Amount</div>
+          <div></div>
+        </div> -->
+        <!-- <div class="expense">
+          <div class="expense-title">${expense.title}</div>
+          <div class="expense-date">${expense.date}</div>
+          <div class="expense-amount">${expense.amount}</div>
+          <div class="expense-icons">
+            <a href="#" class="edit-icon" data-id="${expense.id}">
+              <button class="edit-icon">Edit</button>
+            </a>
+            <a href="#" class="delete-icon" data-id="${expense.id}">
+              <button class="delete-icon">Delete</button>
+            </a>
+          </div>
+        </div> -->
+      </div>
+    </div>
+
+    <script src="js/accounting.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-firestore.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-database.js"></script>
+    <script>
+      // Firebase configuration
+      var firebaseConfig = {
+        apiKey: "AIzaSyAI3ttWz-31uUi99QDp0HtUHJldgzt4_wk",
+        authDomain: "finances-app-v1.firebaseapp.com",
+        databaseURL: "https://finances-app-v1.firebaseio.com",
+        projectId: "finances-app-v1",
+        storageBucket: "finances-app-v1.appspot.com",
+        messagingSenderId: "580579540966",
+        appId: "1:580579540966:web:dfe5867eb9b1ba97e2a027"
+      };
+      // Initialize Firebase
+      firebase.initializeApp(firebaseConfig);
+    </script>
+    <script src="js/app.js"></script>
+
+</body>
+
+</html>
