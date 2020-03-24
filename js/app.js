@@ -1,10 +1,6 @@
-class UI {
+class APP {
   constructor() {
-    // assigning DOM elements to JS properties
-    this.budgetFeedback = document.querySelector(".budget-feedback");
-    this.expenseFeedback = document.querySelector(".expense-feedback");
-    this.budgetForm = document.getElementById("budget-form");
-    this.budgetInput = document.getElementById("budget-input");
+    this.container = document.getElementById("container");
     this.incomeAmount = document.getElementById("budget-amount");
     this.expenseAmount = document.getElementById("expense-amount");
     this.balance = document.getElementById("balance");
@@ -13,51 +9,57 @@ class UI {
     this.radioCategories = document.getElementsByName("radio-category");
     this.amountInput = document.getElementById("amount-input");
     this.notesInput = document.getElementById("notes-input");
-    this.expenseList = document.getElementById("expense-list");
-    this.itemList = [];
-    this.itemID = 0;
     this.radioCurrentState = "";
-    this.rootDatabase = firebase.database();
     this.editMode = false;
     this.editID;
-    this.display = document.getElementById('display');
-    this.listBox = document.getElementById('list-box')
-  }
+    this.display = document.getElementById("display");
+    this.listBox = document.getElementById("list-box");
+    this.database = firebase.database();
+    this.monthDay = document.getElementById("month-day");
+    this.transactions = document.getElementById("transactions");
+    this.userEmail = document.getElementById("userEmail");
+    this.userPassword = document.getElementById("userPassword");
+    this.loginBox = document.getElementById("login-box");
+  };
 
-  // dates
+  // UTILITIES
+  // generate and format date on call
   generateDate(format) {
     let fullDateNow = new Date();
-    let yearNow = fullDateNow.getFullYear();
     let monthNow = fullDateNow.getMonth();
     let dateNow = fullDateNow.getDate();
-    const monthNames = ["January", "February", "March", "April", "May", "June",
-      "July", "August", "September", "October", "November", "December"]
-
-
+    const monthNames = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December"
+    ];
     if (format == "month-day") {
-      return `${monthNow}/${dateNow}`
+      return `${monthNow}/${dateNow}`;
     } else if (format == null) {
       return fullDateNow;
-    }
-    else if (format == "monthName") {
+    } else if (format == "monthName") {
       return monthNames[monthNow];
-    }
-    else if (format == "date") {
+    } else if (format == "date") {
       return dateNow;
     }
-  }
-
-  dateConverter(date) {
+  };
+  // convert existing date to month/date
+  convertDate(date) {
     let inputDate = new Date(date);
-
-    let yearNow = inputDate.getFullYear();
     let monthNow = inputDate.getMonth();
     let dateNow = inputDate.getDate();
-
-    return `${monthNow}/${dateNow}`
-  }
-
-  // format money
+    return `${monthNow}/${dateNow}`;
+  };
+  // format money to accounting style
   formatMoney(value) {
     let formattedValue = accounting.formatMoney(value, {
       format: {
@@ -65,82 +67,166 @@ class UI {
         neg: "(%v)",
         zero: "0"
       }
-    })
-    return formattedValue
-  }
+    });
+    return formattedValue;
+  };
 
-  // database operations
-  readFromDatabase() {
-    this.rootDatabase.ref('expenses').on('value', takeSnapshot);
-
-    self = this;
-
-    function takeSnapshot(snapshot) {
-      var entries = snapshot.val();
-
-      if (entries !== null) {
-
-        var keys = Object.keys(entries);
-
-        var totalIncome = 0;
-        var totalExpense = 0;
-        var totalBalance = 0;
-
-        // match id and content
-        for (var i = 0; i < keys.length; i++) {
-          var k = keys[i];
-
-          var category = entries[k].title;
-          var amount = entries[k].amount;
-
-          if (amount > 0) {
-            totalExpense += amount;
-          }
-          else {
-            totalIncome -= amount;
-          }
-        }
-
-        totalBalance = totalIncome - totalExpense;
-
-        self.incomeAmount.innerHTML = self.formatMoney(totalIncome);
-        self.expenseAmount.innerHTML = self.formatMoney(totalExpense);
-        self.balanceAmount.innerHTML = self.formatMoney(totalBalance);
-        self.listBox.classList.remove("no-show");
-      }
-      else {
-        self.incomeAmount.innerHTML = self.formatMoney(0);
-        self.expenseAmount.innerHTML = self.formatMoney(0);
-        self.balanceAmount.innerHTML = self.formatMoney(0);
-        self.listBox.classList.add("no-show");
-      }
-    }
-  }
-
-  pushToDatabase(expense) {
-    this.rootDatabase.ref('expenses').push(expense);
-  }
-
-  // change text color
+  // AESTHETICS
+  // change text color to green
   changeTextColor() {
     if (this.amountInput.value < 0) {
       this.amountInput.classList.add("green-text");
     } else {
       this.amountInput.classList.remove("green-text");
     }
-  }
+  };
 
-  // method for radios
+  transactionsFadeIn() {
+    this.transactions.classList.remove('min-opacity')
+    this.transactions.classList.add('max-opacity')
+  };
+
+  transactionsFadeOut() {
+    this.transactions.classList.add('min-opacity')
+    this.transactions.classList.remove('max-opacity')
+  };
+
+  loginFadeIn() {
+    this.loginBox.classList.remove('no-show')
+    this.loginBox.classList.remove('min-opacity')
+    this.loginBox.classList.add('max-opacity')
+  };
+
+  loginFadeOut() {
+    this.loginBox.classList.add('min-opacity')
+    this.loginBox.classList.remove('max-opacity')
+    self = this;
+    setTimeout(() => {
+      this.loginBox.classList = "no-show min-opacity"
+    }, 250);
+  };
+
+  // AUTHENTICATION
+  // check authentication state
+  authState() {
+    let self = this;
+    firebase.auth().onAuthStateChanged(function (user) {
+      if (user) {
+        self.userUid = user.uid;
+        self.readFromDatabase();
+        console.log(user.email + ' is logged in.');
+        // aestethic: toggle view on login-box
+        self.loginFadeOut();
+      } else {
+        console.log("No user is signed in.");
+        self.userUid = "";
+        // aestethic: toggle view on login-box
+        self.loginFadeIn();
+      }
+    });
+  };
+  // sign up, and if already registered, log in
+  signUpFirebase() {
+    let email = this.userEmail.value;
+    let password = this.userPassword.value;
+    this.userEmail.value = "";
+    this.userPassword.value = "";
+    // create user
+    firebase
+      .auth()
+      .createUserWithEmailAndPassword(email, password)
+      .then(function () {
+        console.log('Sign-up succesful.');
+      })
+      .catch(() => {
+        // log in existing user
+        firebase
+          .auth()
+          .signInWithEmailAndPassword(email, password)
+          .catch(function (error) {
+            console.log(error);
+          });
+      });
+  };
+  // sign out
+  signOutFirebase() {
+    this.userEmail.value = "";
+    this.userPassword.value = "";
+    firebase
+      .auth()
+      .signOut()
+      .then(function () {
+        console.log('Sign-out successful.');
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  };
+
+  // DATABASE
+  // read from real-time database
+  readFromDatabase() {
+    this.database
+      .ref("users/" + this.userUid + "/expenses")
+      .on("value", takeSnapshot);
+    let self = this;
+
+    function takeSnapshot(snapshot) {
+      var entries = snapshot.val();
+      if (entries) {
+        var keys = Object.keys(entries);
+        var totalIncome = 0;
+        var totalExpense = 0;
+        var totalBalance = 0;
+        // display entries
+        self.displayExpenses(snapshot);
+        // summary totals      
+        for (var i = 0; i < keys.length; i++) {
+          // match id and entry
+          var k = keys[i];
+          var amount = entries[k].amount;
+          if (amount > 0) {
+            totalExpense += amount;
+          } else {
+            totalIncome -= amount;
+          }
+        }
+        // balance
+        totalBalance = totalIncome - totalExpense;
+        // display summary
+        self.incomeAmount.innerHTML = self.formatMoney(totalIncome);
+        self.expenseAmount.innerHTML = self.formatMoney(totalExpense);
+        self.balanceAmount.innerHTML = self.formatMoney(totalBalance);
+        // aesthetic: show transactions list
+        self.transactionsFadeIn();
+      } else {
+        self.incomeAmount.innerHTML = self.formatMoney(0);
+        self.expenseAmount.innerHTML = self.formatMoney(0);
+        self.balanceAmount.innerHTML = self.formatMoney(0);
+        // aesthetic: hide transactions list
+        self.transactionsFadeOut();
+      }
+    }
+  };
+  // push to database
+  pushToDatabase(expense) {
+    this.database.ref("users/" + this.userUid + "/expenses").push(expense);
+  };
+
+  // SYSTEM UTILITIES
+  // control radio buttons
   updateRadios(value) {
-    // set value from inside
+    // check to input value 
     if (value && value !== "reset") {
       this.radioCurrentState = value;
       for (let i = 0; i < this.radioCategories.length; i++) {
         if (this.radioCategories[i].value == value) {
           this.radioCategories[i].checked = true;
+          // aesthetic: brighten radio buttons
           this.radioCategories[i].parentElement.classList.add("light-label");
         } else {
           this.radioCategories[i].checked = false;
+          // aesthetic: darken radio buttons
           this.radioCategories[i].parentElement.classList.remove("light-label");
         }
       }
@@ -149,57 +235,57 @@ class UI {
     else if (value == "reset") {
       for (let i = 0; i < this.radioCategories.length; i++) {
         this.radioCategories[i].checked = false;
-        this.radioCategories[i].parentElement.classList.remove("light-label");
         this.radioCurrentState = "❓";
+        // aesthetic: darken radio buttons
+        this.radioCategories[i].parentElement.classList.remove("light-label");
       }
     }
-    // value absent, set radios from outside
+    // value absent, set current state from checked
     else {
       for (let i = 0; i < this.radioCategories.length; i++) {
         if (this.radioCategories[i].checked) {
           this.radioCurrentState = this.radioCategories[i];
+          // aesthetic: brighten radio buttons
           this.radioCategories[i].parentElement.classList.add("light-label");
         } else {
           this.radioCurrentState = "❓";
+          // aesthetic: darken radio buttons
           this.radioCategories[i].parentElement.classList.remove("light-label");
         }
       }
     }
-  }
+  };
 
-  // submit expense form
+  // FUNCTIONALITIES
+  // submit expense
   submitExpenseForm() {
     const radioCurrentState = this.radioCurrentState;
     const amountInput = this.amountInput.value;
     const notesInput = this.notesInput.value;
     const editMode = this.editMode;
-    const editID = this.editID;
-
-
+    // normal mode
     if (editMode == false) {
       if (amountInput < 0) {
         let amount = parseFloat(amountInput);
         let notes = notesInput;
         this.amountInput.value = "";
-
         let income = {
-          title: '➕',
+          title: "➕",
           date: `${this.generateDate()}`,
           amount: amount,
           notes: notes
-        }
+        };
         this.pushToDatabase(income);
       } else if (amountInput > 0 && radioCurrentState == null) {
         let amount = parseFloat(amountInput);
         let notes = notesInput;
         this.amountInput.value = "";
-
         let expense = {
-          title: '❓',
+          title: "❓",
           date: `${this.generateDate()}`,
           amount: amount,
           notes: notes
-        }
+        };
         this.pushToDatabase(expense);
       } else {
         let amount = parseFloat(amountInput);
@@ -211,34 +297,32 @@ class UI {
           date: `${this.generateDate()}`,
           amount: amount,
           notes: notes
-        }
+        };
         this.pushToDatabase(expense);
       }
     }
-    // if editMode is true
+    // edit mode
     else if (editMode == true) {
       if (amountInput < 0) {
         let amount = parseFloat(amountInput);
         let notes = notesInput;
         this.amountInput.value = "";
-
         let income = {
-          title: '➕',
+          title: "➕",
           amount: amount,
           notes: notes
-        }
-        this.rootDatabase.ref('expenses/' + this.editID).update(income)
+        };
+        this.rootDatabase.ref("expenses/" + this.editID).update(income);
       } else if (amountInput > 0 && radioCurrentState == null) {
         let amount = parseFloat(amountInput);
         let notes = notesInput;
         this.amountInput.value = "";
-
         let expense = {
-          title: '❓',
+          title: "❓",
           amount: amount,
           notes: notes
-        }
-        this.rootDatabase.ref('expenses/' + this.editID).update(expense)
+        };
+        this.rootDatabase.ref("expenses/" + this.editID).update(expense);
       } else {
         let amount = parseFloat(amountInput);
         let notes = notesInput;
@@ -248,71 +332,55 @@ class UI {
           title: radioCurrentState,
           amount: amount,
           notes: notes
-        }
-        this.rootDatabase.ref('expenses/' + this.editID).update(expense)
+        };
+        this.database
+          .ref("users/" + this.userUid + "/expenses/" + this.editID)
+          .update(expense);
       }
     }
     this.editMode = false;
-    this.updateRadios("reset")
-    this.notesInput.placeholder = "Notes"
-
-    // remove selected state on submission
-    let selected = document.querySelector('.selected')
-
+    this.updateRadios("reset");
+    this.notesInput.placeholder = "Notes";
+    // remove selected on submission
+    let selected = document.querySelector(".selected");
+    // aesthetic: change colors in edit mode
     if (selected) {
-      selected.classList.remove('selected')
-      selected.classList.remove('dimmed')
-
+      selected.classList.remove("selected");
+      selected.classList.remove("dimmed");
     }
-    this.display.classList.add('display-black')
-    this.display.classList.remove('display-blue')
-  }
-
-  expenseFilter(expense) {
-    if (expense.amount < 0) {
-      return "(" + -expense.amount + ")";
-    }
-    return expense.amount;
-  }
-
-  // display-expenses
-  displayExpenses() {
-    this.rootDatabase.ref('expenses').on('value', takeSnapshot);
-
-    self = this;
-    function takeSnapshot(snapshot) {
-      self.listBox.innerHTML = '';
-      if (snapshot.val() !== null) {
-        self.expenseList.innerHTML = '';
-        var entries = snapshot.val();
-        var keys = Object.keys(entries);
-
-        let listbox = document.getElementById("list-box")
-        const div = document.createElement('div');
-        div.classList.add('info-month')
-        const month = self.generateDate("monthName");
-        const dateNow = self.generateDate("date")
-        div.innerHTML = `
-        <div>${month} ${dateNow}</div>
+    this.display.classList.add("display-black");
+    this.display.classList.remove("display-blue");
+  };
+  // display database in DOM
+  displayExpenses(snapshot) {
+    this.listBox.innerHTML = "";
+    this.monthDay.innerHTML = "";
+    if (snapshot.val() !== null) {
+      var entries = snapshot.val();
+      var keys = Object.keys(entries);
+      // display today's date
+      let monthDay = document.getElementById("month-day");
+      const div = document.createElement("div");
+      const month = this.generateDate("monthName");
+      const dateNow = this.generateDate("date");
+      div.innerHTML = `
+        <div class="info-month">${month} ${dateNow}</div>
         `;
-        listbox.appendChild(div);
-        listbox.classList.add('initial-animation')
-
-        // match id and content
-        for (var i = 0; i < keys.length; i++) {
-          var k = keys[i];
-          var category = entries[k].title;
-          var amount = entries[k].amount;
-          var amountFormatted = self.formatMoney(amount);
-          var date = entries[k].date;
-          var notes = entries[k].notes;
-          var displayDate = self.dateConverter(date);
-
-          // append to DOM
-          let expenseList = document.getElementById("list-box");
-          const div = document.createElement("div");
-          div.classList.add("expense");
-          div.innerHTML = `
+      monthDay.appendChild(div);
+      // for through database entries
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var category = entries[k].title;
+        var amount = entries[k].amount;
+        var amountFormatted = this.formatMoney(amount);
+        var date = entries[k].date;
+        var notes = entries[k].notes;
+        var displayDate = this.convertDate(date);
+        // append entry[n] to DOM
+        let expenseList = document.getElementById("list-box");
+        const div = document.createElement("div");
+        div.classList.add("expense");
+        div.innerHTML = `
 
         <div class="expense-title">${category}</div>
         <div class="expense-date">${displayDate}</div>
@@ -327,117 +395,108 @@ class UI {
           </a>
         </div>
         `;
-          expenseList.appendChild(div);
-        }
+        expenseList.appendChild(div);
       }
     }
-  }
-
+  };
   // edit expense
   editExpense(element) {
+    this.editMode = true;
     let id = element.dataset.id;
     this.editID = id;
-    this.editMode = true;
     let parent = element.parentElement.parentElement;
-    let title = parent.querySelector('.expense-title').innerHTML;
-    let amount = parent.querySelector('.expense-amount').innerHTML;
-    let notes = parent.querySelector('.expense-notes').innerHTML
-
-    // update radios  
+    let title = parent.querySelector(".expense-title").innerHTML;
+    let amount = parent.querySelector(".expense-amount").innerHTML;
+    let notes = parent.querySelector(".expense-notes").innerHTML;
+    // update radios to entry being edited
     this.updateRadios(title);
     this.amountInput.value = amount;
     this.notesInput.value = notes;
-
-    // visuals
-    parent.classList.add('dimmed')
-    parent.classList.add('selected')
-    this.display.classList.add('display-blue')
-    this.display.classList.remove('display-black')
+    // aesthetic: dim the entry being edited, and make the screen blue for edit mode
+    parent.classList.add("dimmed");
+    parent.classList.add("selected");
+    this.display.classList.add("display-blue");
+    this.display.classList.remove("display-black");
     if (notes == "") {
-      this.notesInput.placeholder = ""
+      this.notesInput.placeholder = "";
     }
-  }
-
+  };
   // delete expense
   deleteExpense(element) {
     let id = element.dataset.id;
-    let parent = element.parentElement.parentElement;
-    // remove from database
-    this.rootDatabase.ref('expenses/' + id).remove();
-  }
-}
+    this.database.ref("users/" + this.userUid + "/expenses/" + id).remove();
+  };
+};
+
 // event listeners
 function eventListeners() {
-  const expenseForm = document.getElementById("expense-form");
-  const expenseList = document.getElementById("expense-list");
   const radioCategories = document.getElementsByName("radio-category");
   const amountInput = document.getElementById("amount-input");
   const expenseInput = document.getElementById("expense-input");
-  const notesInput = document.getElementById("notes-input")
-  const listBox = document.getElementById("list-box")
+  const expenseForm = document.getElementById("expense-form");
+  const listBox = document.getElementById("list-box");
+  const loginForm = document.getElementById("login-form");
+  const logOutButton = document.getElementById("log-out-button");
 
+  loginForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+  });
+  // login submit on "enter"
+  loginForm.onkeydown = function (e) {
+    if (e.keyCode == 13) {
+      app.signUpFirebase();
+    }
+  };
+  logOutButton.addEventListener("click", () => {
+    app.signOutFirebase();
+    window.location.reload();
+  });
   // new instance of UI CLASS
-  const ui = new UI();
-
-  // initial read from database (console.log())
-  ui.readFromDatabase();
-  ui.displayExpenses();
-
+  const app = new APP();
+  // utility to see who's in
+  app.authState();
   // reset radio at startup
-  ui.updateRadios("reset");
-
+  app.updateRadios("reset");
   // expense click
   listBox.addEventListener("click", function (event) {
     if (event.target.classList.contains("edit-icon")) {
-      if (ui.editMode == false) {
-        ui.editExpense(event.target.parentElement);
+      if (app.editMode == false) {
+        app.editExpense(event.target.parentElement);
         document.getElementById("amount-input").focus();
       }
-    } else if (event.target.classList.contains("delete-icon") && ui.editMode == false) {
-      ui.deleteExpense(event.target.parentElement);
+    } else if (event.target.classList.contains("delete-icon") &&
+      app.editMode == false) {
+      app.deleteExpense(event.target.parentElement);
     }
   });
-
   // category change
   for (let i = 0; i < radioCategories.length; i++) {
     radioCategories[i].addEventListener("change", function () {
-      ui.updateRadios(radioCategories[i].value);
+      app.updateRadios(radioCategories[i].value);
     });
   }
-
   // display color change
   amountInput.addEventListener("input", function () {
-    ui.changeTextColor();
+    app.changeTextColor();
   });
-
   // auto focus back to display
-  expenseInput.addEventListener("click", function (event) {
+  expenseInput.addEventListener("click", function () {
     document.getElementById("amount-input").focus();
   });
-
+  expenseForm.addEventListener("submit", function (event) {
+    event.preventDefault();
+  });
   // form submit on "enter"
-  document.onkeydown = function (e) {
+  expenseForm.onkeydown = function (e) {
     if (e.keyCode == 13) {
-      ui.submitExpenseForm();
-    }
-  }
+      app.submitExpenseForm();
+    };
+  };
+};
 
-  // document.addEventListener('keydown', keydown => {
-  //   console.log(keydown)
-  //   if (keydown.code.includes("Digit") && keydown.shiftKey == false || keydown.code.includes("Period") || keydown.key.includes("+") || keydown.code.includes("Backspace") && notesInput.value == '' || keydown.code.includes("Slash")) {
-  //     document.getElementById("amount-input").focus();
-  //   }
-  //   else {
-  //     document.getElementById("notes-input").focus();
-  //     document.getElementById("notes-input").classList.remove('zero-opacity');
-  //   }
-  // })
-}
-
+// START
 // when DOMContentLoaded function eventListeners loads
 document.addEventListener("DOMContentLoaded", function () {
   eventListeners();
-  document.getElementById('container').classList.remove("no-show")
-  document.getElementById('container').classList.add("initial-animation")
-  
+  document.getElementById("container").classList.add("initial-animation");
 });

@@ -14,15 +14,28 @@
   <meta name="msapplication-TileColor" content="#da532c">
   <meta name="theme-color" content="#ffffff">
   <title>Finanza</title>
-  <style>
-  </style>
 </head>
 
 <body>
 
-  <div class="container no-show" id="container">
+  <!-- login-box -->
+  <div class="login-box no-show min-opacity" id="login-box">
+    <div class="welcome">
+      Welcome to Finanza
+    </div class="welcome">
+    <div class="introduction-message">
+      Finanza is a simple web-app to help you manage your finances.
+    </div>
+    <form id="login-form">
+      <input type="email" name="userEmail" id="userEmail" placeholder="Email">
+      <input type="password" name="userPassword" id="userPassword" placeholder="Password">
+    </form>
+  </div>
 
-    <!-- Expense form -->
+  <!-- container -->
+  <div class="container" id="container">
+
+    <!-- expense-form -->
     <form id="expense-form" class="expense-form">
       <div class="display" id="display">
         <input type="text" class="notes-display" id="notes-input" placeholder="Notes">
@@ -45,8 +58,8 @@
       <button type="submit" class="submit-button" id="expense-submit">Add</button>
     </form>
 
-    <!-- Summary -->
-    <div class="summary">
+    <!-- summary -->
+    <div class="summary" id="summary">
       <div class="income">
         <span class="text-uppercase info-title">Income</span>
         <span class="budget-icon"><i class="fas fa-money-bill-alt"></i></span>
@@ -66,9 +79,18 @@
       </div>
     </div>
 
-    <!-- List -->
-    <div class="list-box no-show" id="list-box">
-      <div class="list" id="expense-list">
+    <!-- transactions -->
+    <div class="transactions min-opacity" id="transactions">
+      <div class="month-day" id="month-day">
+      </div>
+      <div class="info-row">
+        <div class="expense-title">Category</div>
+        <div class="expense-date">Date</div>
+        <div class="expense-amount">Amount</div>
+        <div class="expense-notes no-show">Notes</div>
+        <div></div>
+      </div>
+      <div class="list-box" id="list-box">
         <!-- <div class="heading-row">
           <div>Category</div>
           <div>Date</div>
@@ -90,27 +112,38 @@
         </div> -->
       </div>
     </div>
+  </div>
 
-    <script src="js/accounting.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-firestore.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-database.js"></script>
-    <script>
-      // Firebase configuration
-      var firebaseConfig = {
-        apiKey: "AIzaSyAI3ttWz-31uUi99QDp0HtUHJldgzt4_wk",
-        authDomain: "finances-app-v1.firebaseapp.com",
-        databaseURL: "https://finances-app-v1.firebaseio.com",
-        projectId: "finances-app-v1",
-        storageBucket: "finances-app-v1.appspot.com",
-        messagingSenderId: "580579540966",
-        appId: "1:580579540966:web:dfe5867eb9b1ba97e2a027"
-      };
-      // Initialize Firebase
-      firebase.initializeApp(firebaseConfig);
-    </script>
-    <script src="js/app.js"></script>
+  <!-- footer -->
+  <div class="footer" id="footer">
+    <span class="log-out-button" id="log-out-button">Log out</span>
+    <span class="copyright">Copyright © 2020 George Cesar — All rights reserved.</span>
+  </div>
+
+  <!-- accouting script -->
+  <script src="js/accounting.js"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-database.js"></script>
+
+  <script>
+    // Firebase configuration
+    var firebaseConfig = {
+      apiKey: "AIzaSyAI3ttWz-31uUi99QDp0HtUHJldgzt4_wk",
+      authDomain: "finances-app-v1.firebaseapp.com",
+      databaseURL: "https://finances-app-v1.firebaseio.com",
+      projectId: "finances-app-v1",
+      storageBucket: "finances-app-v1.appspot.com",
+      messagingSenderId: "580579540966",
+      appId: "1:580579540966:web:dfe5867eb9b1ba97e2a027"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
+
+  <script src="js/app.js"></script>
 
 </body>
 
