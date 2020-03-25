@@ -55,7 +55,7 @@ class APP {
   // convert existing date to month/date
   convertDate(date) {
     let inputDate = new Date(date);
-    let monthNow = inputDate.getMonth();
+    let monthNow = inputDate.getMonth() + 1;
     let dateNow = inputDate.getDate();
     return `${monthNow}/${dateNow}`;
   };
@@ -381,17 +381,16 @@ class APP {
         const div = document.createElement("div");
         div.classList.add("expense");
         div.innerHTML = `
-
         <div class="expense-title">${category}</div>
         <div class="expense-date">${displayDate}</div>
         <div class="expense-amount">${amountFormatted}</div>
         <div class="expense-notes no-show">${notes}</div>
         <div class="expense-icons">
           <a href="#" class="edit-icon" data-id="${k}">
-            <div class="edit-icon">Edit</div>
+            <div class="edit-icon">🖍</div>
           </a>
           <a href="#" class="delete-icon" data-id="${k}">
-            <div class="delete-icon">Delete</div>
+            <div class="delete-icon">❌</div>
           </a>
         </div>
         `;
