@@ -20,12 +20,15 @@ class APP {
     this.userEmail = document.getElementById("userEmail");
     this.userPassword = document.getElementById("userPassword");
     this.loginBox = document.getElementById("login-box");
+    this.userUid;
+    this.sortBy = "byID";
   };
 
   // UTILITIES
   // generate and format date on call
   generateDate(format) {
     let fullDateNow = new Date();
+    let timeNow = fullDateNow.getTime();
     let monthNow = fullDateNow.getMonth();
     let dateNow = fullDateNow.getDate();
     const monthNames = [
@@ -46,6 +49,8 @@ class APP {
       return `${monthNow}/${dateNow}`;
     } else if (format == null) {
       return fullDateNow;
+    } else if (format == "time") {
+      return timeNow;
     } else if (format == "monthName") {
       return monthNames[monthNow];
     } else if (format == "date") {
@@ -54,7 +59,7 @@ class APP {
   };
   // convert existing date to month/date
   convertDate(date) {
-    let inputDate = new Date(date);
+    let inputDate = new Date(parseInt(date));
     let monthNow = inputDate.getMonth() + 1;
     let dateNow = inputDate.getDate();
     return `${monthNow}/${dateNow}`;
@@ -65,7 +70,7 @@ class APP {
       format: {
         pos: "%v",
         neg: "(%v)",
-        zero: "0"
+        zero: "–"
       }
     });
     return formattedValue;
@@ -82,13 +87,20 @@ class APP {
   };
 
   transactionsFadeIn() {
-    this.transactions.classList.remove('min-opacity')
-    this.transactions.classList.add('max-opacity')
+    this.transactions.classList.remove('no-show')
+    // glitch: removing no-show without delay doesn't trigger the animation
+    setTimeout(() => {
+      this.transactions.classList.remove('min-opacity')
+      this.transactions.classList.add('max-opacity')
+    }, 10)
   };
 
   transactionsFadeOut() {
     this.transactions.classList.add('min-opacity')
     this.transactions.classList.remove('max-opacity')
+    setTimeout(() => {
+      this.transactions.classList.add('no-show')
+    }, 250);
   };
 
   loginFadeIn() {
@@ -110,7 +122,7 @@ class APP {
   // check authentication state
   authState() {
     let self = this;
-    firebase.auth().onAuthStateChanged(function (user) {
+    firebase.auth().onAuthStateChanged(function(user) {
       if (user) {
         self.userUid = user.uid;
         self.readFromDatabase();
@@ -135,7 +147,7 @@ class APP {
     firebase
       .auth()
       .createUserWithEmailAndPassword(email, password)
-      .then(function () {
+      .then(function() {
         console.log('Sign-up succesful.');
       })
       .catch(() => {
@@ -143,7 +155,7 @@ class APP {
         firebase
           .auth()
           .signInWithEmailAndPassword(email, password)
-          .catch(function (error) {
+          .catch(function(error) {
             console.log(error);
           });
       });
@@ -155,10 +167,10 @@ class APP {
     firebase
       .auth()
       .signOut()
-      .then(function () {
+      .then(function() {
         console.log('Sign-out successful.');
       })
-      .catch(function (error) {
+      .catch(function(error) {
         console.log(error);
       });
   };
@@ -168,7 +180,7 @@ class APP {
   readFromDatabase() {
     this.database
       .ref("users/" + this.userUid + "/expenses")
-      .on("value", takeSnapshot);
+      .once("value", takeSnapshot);
     let self = this;
 
     function takeSnapshot(snapshot) {
@@ -178,11 +190,13 @@ class APP {
         var totalIncome = 0;
         var totalExpense = 0;
         var totalBalance = 0;
-        // display entries
-        self.displayExpenses(snapshot);
-        // summary totals      
+
+        var formattedArray = [];
+        var sortedArray = [];
+        var formattedObject = {};
+
+        // operations through the database
         for (var i = 0; i < keys.length; i++) {
-          // match id and entry
           var k = keys[i];
           var amount = entries[k].amount;
           if (amount > 0) {
@@ -190,8 +204,64 @@ class APP {
           } else {
             totalIncome -= amount;
           }
+          // format entries (including the parent key)
+          let formattedEntry = {
+            key: keys[i],
+            title: entries[k].title,
+            date: entries[k].date,
+            amount: entries[k].amount,
+            notes: entries[k].notes,
+          }
+          formattedArray.push(formattedEntry);
         }
-        // balance
+        // sort the formatted array
+        if (self.sortBy) {
+          sortedArray = formattedArray.sort(function(a, b) {
+            if (self.sortBy == "byID") {
+              if (a.key < b.key) {
+                return -1;
+              }
+              if (a.key > b.key) {
+                return 1;
+              }
+              return 0;
+            } else if (self.sortBy == "Category") {
+              if (a.title < b.title) {
+                return -1;
+              }
+              if (a.title > b.title) {
+                return 1;
+              }
+              return 0;
+            } else if (self.sortBy == "Date") {
+              if (a.date < b.date) {
+                return -1;
+              }
+              if (a.date > b.date) {
+                return 1;
+              }
+              return 0;
+            } else if (self.sortBy == "Amount") {
+              if (a.amount < b.amount) {
+                return -1;
+              }
+              if (a.amount > b.amount) {
+                return 1;
+              }
+              return 0;
+            }
+          })
+        } else {
+          console.log("no sortBy state.");
+        }
+        // transform array to object - REVIEW REDUCE_METHOD
+        formattedObject = sortedArray.reduce((acc, val) => {
+          acc[val.key] = val;
+          return acc;
+        }, {});
+        // display entries
+        self.displayExpenses(formattedObject);
+        // display balance
         totalBalance = totalIncome - totalExpense;
         // display summary
         self.incomeAmount.innerHTML = self.formatMoney(totalIncome);
@@ -216,7 +286,7 @@ class APP {
   // SYSTEM UTILITIES
   // control radio buttons
   updateRadios(value) {
-    // check to input value 
+    // check to input value
     if (value && value !== "reset") {
       this.radioCurrentState = value;
       for (let i = 0; i < this.radioCategories.length; i++) {
@@ -255,6 +325,10 @@ class APP {
       }
     }
   };
+  // sorting the list
+  sortExpenses(state) {
+
+  };
 
   // FUNCTIONALITIES
   // submit expense
@@ -263,79 +337,106 @@ class APP {
     const amountInput = this.amountInput.value;
     const notesInput = this.notesInput.value;
     const editMode = this.editMode;
+
     // normal mode
     if (editMode == false) {
-      if (amountInput < 0) {
-        let amount = parseFloat(amountInput);
-        let notes = notesInput;
-        this.amountInput.value = "";
-        let income = {
-          title: "➕",
-          date: `${this.generateDate()}`,
-          amount: amount,
-          notes: notes
-        };
-        this.pushToDatabase(income);
-      } else if (amountInput > 0 && radioCurrentState == null) {
-        let amount = parseFloat(amountInput);
-        let notes = notesInput;
-        this.amountInput.value = "";
-        let expense = {
-          title: "❓",
-          date: `${this.generateDate()}`,
-          amount: amount,
-          notes: notes
-        };
-        this.pushToDatabase(expense);
+      if (amountInput) {
+        if (amountInput < 0) {
+          let amount = parseFloat(amountInput);
+          let notes = notesInput;
+          this.amountInput.value = "";
+          let income = {
+            title: "➕",
+            date: `${this.generateDate("time")}`,
+            amount: amount,
+            notes: notes
+          };
+          this.pushToDatabase(income);
+        } else if (amountInput > 0 && radioCurrentState == null) {
+          let amount = parseFloat(amountInput);
+          let notes = notesInput;
+          this.amountInput.value = "";
+          let expense = {
+            title: "❓",
+            date: `${this.generateDate("time")}`,
+            amount: amount,
+            notes: notes
+          };
+          this.pushToDatabase(expense);
+        } else {
+          let amount = parseFloat(amountInput);
+          let notes = notesInput;
+          this.amountInput.value = "";
+          this.notesInput.value = "";
+          let expense = {
+            title: radioCurrentState,
+            date: `${this.generateDate("time")}`,
+            amount: amount,
+            notes: notes
+          };
+          this.pushToDatabase(expense);
+        }
       } else {
-        let amount = parseFloat(amountInput);
-        let notes = notesInput;
-        this.amountInput.value = "";
         this.notesInput.value = "";
-        let expense = {
-          title: radioCurrentState,
-          date: `${this.generateDate()}`,
-          amount: amount,
-          notes: notes
-        };
-        this.pushToDatabase(expense);
+        console.log('No input.')
       }
     }
     // edit mode
     else if (editMode == true) {
-      if (amountInput < 0) {
-        let amount = parseFloat(amountInput);
-        let notes = notesInput;
-        this.amountInput.value = "";
-        let income = {
-          title: "➕",
-          amount: amount,
-          notes: notes
-        };
-        this.rootDatabase.ref("expenses/" + this.editID).update(income);
-      } else if (amountInput > 0 && radioCurrentState == null) {
-        let amount = parseFloat(amountInput);
-        let notes = notesInput;
-        this.amountInput.value = "";
-        let expense = {
-          title: "❓",
-          amount: amount,
-          notes: notes
-        };
-        this.rootDatabase.ref("expenses/" + this.editID).update(expense);
+      if (amountInput) {
+        if (amountInput < 0) {
+          let amount = parseFloat(amountInput);
+          let notes = notesInput;
+          this.amountInput.value = "";
+          let income = {
+            title: "➕",
+            amount: amount,
+            notes: notes
+          };
+          this.database
+            .ref("users/" + this.userUid + "/expenses/" + this.editID)
+            .update(income);
+        } else if (amountInput > 0 && radioCurrentState == null) {
+          let amount = parseFloat(amountInput);
+          let notes = notesInput;
+          this.amountInput.value = "";
+          let expense = {
+            title: "❓",
+            amount: amount,
+            notes: notes
+          };
+          this.database
+            .ref("users/" + this.userUid + "/expenses/" + this.editID)
+            .update(expense);
+        } else if (amountInput > 0 && radioCurrentState == "➕") {
+          let amount = parseFloat(amountInput);
+          let notes = notesInput;
+          this.amountInput.value = "";
+          let expense = {
+            title: "❓",
+            amount: amount,
+            notes: notes
+          };
+          this.database
+            .ref("users/" + this.userUid + "/expenses/" + this.editID)
+            .update(expense);
+        } else {
+          let amount = parseFloat(amountInput);
+          let notes = notesInput;
+          this.amountInput.value = "";
+          this.notesInput.value = "";
+          let expense = {
+            title: radioCurrentState,
+            amount: amount,
+            notes: notes
+          };
+          this.database
+            .ref("users/" + this.userUid + "/expenses/" + this.editID)
+            .update(expense);
+        }
       } else {
-        let amount = parseFloat(amountInput);
-        let notes = notesInput;
-        this.amountInput.value = "";
         this.notesInput.value = "";
-        let expense = {
-          title: radioCurrentState,
-          amount: amount,
-          notes: notes
-        };
-        this.database
-          .ref("users/" + this.userUid + "/expenses/" + this.editID)
-          .update(expense);
+        this.editMode = false;
       }
     }
     this.editMode = false;
@@ -355,9 +456,9 @@ class APP {
   displayExpenses(snapshot) {
     this.listBox.innerHTML = "";
     this.monthDay.innerHTML = "";
-    if (snapshot.val() !== null) {
-      var entries = snapshot.val();
-      var keys = Object.keys(entries);
+    if (snapshot !== null) {
+      var entries = snapshot;
+      var keys = Object.keys(snapshot);
       // display today's date
       let monthDay = document.getElementById("month-day");
       const div = document.createElement("div");
@@ -436,28 +537,31 @@ function eventListeners() {
   const listBox = document.getElementById("list-box");
   const loginForm = document.getElementById("login-form");
   const logOutButton = document.getElementById("log-out-button");
+  const infoRow = document.getElementById('info-row');
 
-  loginForm.addEventListener("submit", function (event) {
-    event.preventDefault();
-  });
-  // login submit on "enter"
-  loginForm.onkeydown = function (e) {
-    if (e.keyCode == 13) {
-      app.signUpFirebase();
-    }
-  };
-  logOutButton.addEventListener("click", () => {
-    app.signOutFirebase();
-    window.location.reload();
-  });
   // new instance of UI CLASS
   const app = new APP();
   // utility to see who's in
   app.authState();
   // reset radio at startup
   app.updateRadios("reset");
+
+  loginForm.addEventListener("submit", function(event) {
+    event.preventDefault();
+  });
+  // login submit on "enter"
+  loginForm.onkeydown = function(e) {
+    if (e.keyCode == 13) {
+      app.signUpFirebase();
+      app.readFromDatabase();
+    }
+  };
+  logOutButton.addEventListener("click", () => {
+    app.signOutFirebase();
+    window.location.reload();
+  });
   // expense click
-  listBox.addEventListener("click", function (event) {
+  listBox.addEventListener("click", function(event) {
     if (event.target.classList.contains("edit-icon")) {
       if (app.editMode == false) {
         app.editExpense(event.target.parentElement);
@@ -467,35 +571,43 @@ function eventListeners() {
       app.editMode == false) {
       app.deleteExpense(event.target.parentElement);
     }
+    app.readFromDatabase();
   });
   // category change
   for (let i = 0; i < radioCategories.length; i++) {
-    radioCategories[i].addEventListener("change", function () {
+    radioCategories[i].addEventListener("change", function() {
       app.updateRadios(radioCategories[i].value);
     });
   }
+  // sorting change
+  infoRow.addEventListener('click', (e) => {
+    app.sortBy = e.target.innerHTML;
+    app.readFromDatabase();
+  })
+
   // display color change
-  amountInput.addEventListener("input", function () {
+  amountInput.addEventListener("input", function() {
     app.changeTextColor();
   });
   // auto focus back to display
-  expenseInput.addEventListener("click", function () {
+  expenseInput.addEventListener("click", function() {
     document.getElementById("amount-input").focus();
   });
-  expenseForm.addEventListener("submit", function (event) {
+  expenseForm.addEventListener("submit", function(event) {
     event.preventDefault();
   });
   // form submit on "enter"
-  expenseForm.onkeydown = function (e) {
+  expenseForm.onkeydown = function(e) {
     if (e.keyCode == 13) {
       app.submitExpenseForm();
+      app.readFromDatabase();
     };
   };
 };
 
 // START
 // when DOMContentLoaded function eventListeners loads
-document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", function() {
   eventListeners();
   document.getElementById("container").classList.add("initial-animation");
 });

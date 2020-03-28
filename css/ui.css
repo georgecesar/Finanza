@@ -3,10 +3,8 @@
   --medium-gray: rgb(197, 197, 197);
   --dark-gray: rgb(190, 190, 190);
   --black: rgb(60, 60, 60);
-
   --apple-silver: #A3AAAE;
   --apple-white: #F9F6EF;
-
   --rolex-green: #006039;
   --rolex-orange: #a37d2c;
 }
@@ -69,13 +67,29 @@ body {
   transition: opacity 250ms ease-in-out;
 }
 
+.instructions-box {
+  position: absolute;
+  top: 60%;
+  left: 50%;
+  transform: translate(-50%, -10%);
+  z-index: 9;
+  background-color: white;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 15px;
+  /* margin: 2rem; */
+  padding: 2rem;
+  display: flex;
+  flex-flow: column;
+  transition: opacity 250ms ease-in-out;
+}
+
 .login-box>form {
   display: flex;
   flex-flow: column;
 }
 
 .welcome {
-  color: var(--rolex-green);
+  color: var(--black);
   white-space: nowrap;
   font-size: 1.5rem;
   font-weight: bold;
@@ -118,6 +132,11 @@ body {
 input[type="number"]::-webkit-inner-spin-button,
 input[type="number"]::-webkit-outer-spin-button {
   -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
 }
 
 .submit-button {
@@ -149,6 +168,14 @@ input[type="number"]::-webkit-outer-spin-button {
   background-color: #0d64ad;
 }
 
+input::placeholder {
+  transition: color 250ms ease-in-out;
+}
+
+.display-blue input::placeholder {
+  color: white;
+}
+
 .display-black {
   /* -webkit-transition: all 250ms ease;
   -moz-transition: all 250ms ease;
@@ -163,24 +190,23 @@ input[type="number"]::-webkit-outer-spin-button {
 }
 
 .amount-display {
+  width: auto;
   flex: auto;
   font-size: 2rem;
   border-style: none;
   background: none;
   border-radius: 0;
   text-align: right;
-  color: transparent;
-  text-shadow: 0 0 0 lightgrey;
+  color: var(--light-gray);
 }
 
 .notes-display {
+  color: var(--light-gray);
   font-size: 1rem;
   background: none;
   border-style: none;
   border-radius: 0;
   text-align: left;
-  color: transparent;
-  text-shadow: 0 0 0 lightgrey;
 }
 
 .green-text {
@@ -303,6 +329,11 @@ a {
 
 .info-row>* {
   flex: 1;
+}
+
+.expense-title {
+  display: flex;
+  align-items: center;
 }
 
 .expense {
