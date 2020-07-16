@@ -1,6 +1,4 @@
 <!DOCTYPE html>
-<html lang="en">
-
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
@@ -15,74 +13,44 @@
   <meta name="theme-color" content="#ffffff">
   <title>Finanza</title>
 </head>
-
 <body>
-
-  <!-- login-box -->
-  <div id="login-box" class="login-box no-show min-opacity">
-    <div class="welcome">
-      Welcome to Finanza
-    </div class="welcome">
-    <div class="introduction-message">
-      Finanza is a simple web-app to help you manage your finances.
-    </div>
+  <div class="login-box no-show min-opacity" id="login-box">
+    <div class="welcome">Welcome to Finanza</div>
+    <div class="introduction-message">Finanza is a simple web-app to help you manage your finances.</div>
     <form id="login-form">
-      <input type="email" name="userEmail" id="userEmail" placeholder="Email">
-      <input type="password" name="userPassword" id="userPassword" placeholder="Password">
+      <input id="userEmail" type="email" name="userEmail" placeholder="Email">
+      <input id="userPassword" type="password" name="userPassword" placeholder="Password">
     </form>
   </div>
-
-  <!-- container -->
   <div class="container" id="container">
-
-    <!-- expense-form -->
-    <form id="expense-form" class="expense-form">
+    <form class="expense-form" id="expense-form">
       <div class="display" id="display">
-        <input type="text" class="notes-display" id="notes-input" placeholder="Notes">
-        <input type="number" class="amount-display" id="amount-input" placeholder="$" autofocus>
+        <input class="notes-display" id="notes-input" type="text" placeholder="Notes">
+        <input class="amount-display" id="amount-input" type="number" placeholder="$" autofocus="">
       </div>
       <div class="categories-icons" id="expense-input">
         <label class="radio-zone dark-label first">
-          <input type="radio" class="radio-button" name="radio-category" value="🍕">
-          🍕</label>
+          <input class="radio-button" type="radio" name="radio-category" value="🍕">          &#x1F355;
+        </label>
         <label class="radio-zone dark-label">
-          <input type="radio" class="radio-button" name="radio-category" value="⛽️">
-          ⛽️</label>
+          <input class="radio-button" type="radio" name="radio-category" value="⛽️">          &#x26FD;&#xFE0F;
+        </label>
         <label class="radio-zone dark-label">
-          <input type="radio" class="radio-button" name="radio-category" value="⚙️">
-          ⚙️</label>
+          <input class="radio-button" type="radio" name="radio-category" value="⚙️">          &#x2699;&#xFE0F;
+        </label>
         <label class="radio-zone dark-label last">
-          <input type="radio" class="radio-button" name="radio-category" value="🥑">
-          🥑</label>
+          <input class="radio-button" type="radio" name="radio-category" value="🥑">          &#x1F951;
+        </label>
       </div>
-      <button type="submit" class="submit-button" id="expense-submit">Add</button>
+      <button class="submit-button" id="expense-submit" type="submit">Add</button>
     </form>
-
-    <!-- summary -->
     <div class="summary" id="summary">
-      <div class="income">
-        <span class="text-uppercase info-title">Income</span>
-        <span class="budget-icon"><i class="fas fa-money-bill-alt"></i></span>
-        <span class="info-amount" id="budget"><span id="budget-amount">0</span></span>
-      </div>
-      <div class="expenses">
-        <span class="text-uppercase info-title">Expenses</span>
-        <span class="expense-icon"><i class="far fa-credit-card"></i></span>
-        <span class="info-amount" id="expense"><span id="expense-amount">0</span>
-        </span>
-      </div>
-      <div class="balance">
-        <span class="text-uppercase info-title">Balance</span>
-        <span class="balance-icon"><i class="fas fa-dollar-sign"></i></span>
-        <span class="info-amount" id="balance"><span id="balance-amount">0</span>
-        </span>
-      </div>
+      <div class="income"><span class="text-uppercase info-title">Income</span><span class="budget-icon"><i class="fas fa-money-bill-alt"></i></span><span class="info-amount" id="budget"><span id="budget-amount">0</span></span></div>
+      <div class="expenses"><span class="text-uppercase info-title">Expenses</span><span class="expense-icon"><i class="far fa-credit-card"></i></span><span class="info-amount" id="expense"><span id="expense-amount">0</span></span></div>
+      <div class="balance"><span class="text-uppercase info-title">Balance</span><span class="balance-icon"><i class="fas fa-dollar-sign"></i></span><span class="info-amount" id="balance"><span id="balance-amount">0</span></span></div>
     </div>
-
-    <!-- transactions -->
     <div class="transactions min-opacity" id="transactions">
-      <div class="month-day" id="month-day">
-      </div>
+      <div class="month-day" id="month-day"></div>
       <div class="info-row" id="info-row">
         <div class="expense-title-info">Category</div>
         <div class="expense-date-info">Date</div>
@@ -90,43 +58,31 @@
         <div class="expense-notes-info">Notes</div>
         <div></div>
       </div>
-      <div class="list-box" id="list-box">
-        <!-- list of transactions -->
-      </div>
+      <div class="list-box" id="list-box"></div>
     </div>
   </div>
-
-  <!-- footer -->
   <div class="footer" id="footer">
-    <span class="log-out-button" id="log-out-button">Log out</span>
-    <span class="copyright">Copyright © 2020 George Cesar — All rights reserved.</span>
+    <button class="log-out-button" id="log-out-button">Log out</button><span class="copyright">Copyright &copy; 2020 George Cesar &mdash; All rights reserved.</span>
   </div>
-
-  <!-- accouting script -->
   <script src="js/accounting.js"></script>
   <script type="module" src="js/date.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-auth.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-firestore.js"></script>
   <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-database.js"></script>
-
   <script>
-    // Firebase configuration
+    //- Firebase configuration
     var firebaseConfig = {
-      apiKey: "AIzaSyAI3ttWz-31uUi99QDp0HtUHJldgzt4_wk",
-      authDomain: "finances-app-v1.firebaseapp.com",
-      databaseURL: "https://finances-app-v1.firebaseio.com",
-      projectId: "finances-app-v1",
-      storageBucket: "finances-app-v1.appspot.com",
-      messagingSenderId: "580579540966",
-      appId: "1:580579540966:web:dfe5867eb9b1ba97e2a027"
+    apiKey: "AIzaSyAI3ttWz-31uUi99QDp0HtUHJldgzt4_wk",
+    authDomain: "finances-app-v1.firebaseapp.com",
+    databaseURL: "https://finances-app-v1.firebaseio.com",
+    projectId: "finances-app-v1",
+    storageBucket: "finances-app-v1.appspot.com",
+    messagingSenderId: "580579540966",
+    appId: "1:580579540966:web:dfe5867eb9b1ba97e2a027"
     };
-    // Initialize Firebase
+    //- Initialize Firebase
     firebase.initializeApp(firebaseConfig);
   </script>
-
   <script type="module" src="js/app.js"></script>
-
 </body>
-
-</html>

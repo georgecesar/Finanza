@@ -1,8 +1,37 @@
-// IMPORTS
 import generateDate from "./date.js";
+
+class State {
+  constructor(message, previous, storage) {
+    this.message = message || 'Initialized';
+    this.previous = previous;
+    this.storage = storage || [];
+    this.time = new Date();
+  }
+
+  change(message) {
+    return new State(message, this, this.storage);
+  }
+
+  revert() {
+    return this.previous ? this.previous : new Error('No past available.');
+  }
+}
+
+class Record {
+  constructor(id, title, amount, date, notes) {
+    this.title = title;
+    this.id = id;
+    this.amount = amount;
+    this.date = date;
+    this.notes = notes;
+  }
+}
 
 class App {
   constructor() {
+    this.database = firebase.database();
+    this.state = new State;
+    this.history = [];
     this.container = document.getElementById("container");
     this.incomeAmount = document.getElementById("budget-amount");
     this.expenseAmount = document.getElementById("expense-amount");
@@ -16,28 +45,26 @@ class App {
     this.editMode = false;
     this.editID;
     this.display = document.getElementById("display");
-    this.listBox = document.getElementById("list-box");
-    this.database = firebase.database();
-    this.monthDay = document.getElementById("month-day");
+    this.data = document.getElementById("list-box");
+    this.headerDate = document.getElementById("month-day");
     this.transactions = document.getElementById("transactions");
     this.userEmail = document.getElementById("userEmail");
     this.userPassword = document.getElementById("userPassword");
     this.loginBox = document.getElementById("login-box");
-    this.userUid;
+    this.userUID;
     this.sortBy = "byID";
-  };
+    this.expenseList = document.getElementById("list-box");
+  }
 
-  // format money to accounting style
   formatMoney(value) {
-    let formattedValue = accounting.formatMoney(value, {
+    return accounting.formatMoney(value, {
       format: {
         pos: "%v",
         neg: "(%v)",
         zero: "–"
       }
     });
-    return formattedValue;
-  };
+  }
 
   // AESTHETICS
   // change text color to green
@@ -47,7 +74,7 @@ class App {
     } else {
       this.amountInput.classList.remove("green-text");
     }
-  };
+  }
 
   transactionsFadeIn() {
     this.transactions.classList.remove('no-show')
@@ -56,7 +83,7 @@ class App {
       this.transactions.classList.remove('min-opacity')
       this.transactions.classList.add('max-opacity')
     }, 10)
-  };
+  }
 
   transactionsFadeOut() {
     this.transactions.classList.add('min-opacity')
@@ -64,13 +91,13 @@ class App {
     setTimeout(() => {
       this.transactions.classList.add('no-show')
     }, 250);
-  };
+  }
 
   loginFadeIn() {
     this.loginBox.classList.remove('no-show')
     this.loginBox.classList.remove('min-opacity')
     this.loginBox.classList.add('max-opacity')
-  };
+  }
 
   loginFadeOut() {
     this.loginBox.classList.add('min-opacity')
@@ -79,7 +106,7 @@ class App {
     setTimeout(() => {
       this.loginBox.classList = "no-show min-opacity"
     }, 250);
-  };
+  }
 
   // AUTHENTICATION
   // check authentication state
@@ -87,19 +114,19 @@ class App {
     let self = this;
     firebase.auth().onAuthStateChanged(function (user) {
       if (user) {
-        self.userUid = user.uid;
-        self.readFromDatabase();
+        self.userUID = user.uid;
+        self.readFirebase();
         console.log(user.email + ' is logged in.');
         // aestethic: toggle view on login-box
         self.loginFadeOut();
       } else {
         console.log("No user is signed in.");
-        self.userUid = "";
+        self.userUID = "";
         // aestethic: toggle view on login-box
         self.loginFadeIn();
       }
     });
-  };
+  }
   // sign up, and if already registered, log in
   signUpFirebase() {
     let email = this.userEmail.value;
@@ -122,7 +149,7 @@ class App {
             console.log(error);
           });
       });
-  };
+  }
   // sign out
   signOutFirebase() {
     this.userEmail.value = "";
@@ -136,115 +163,39 @@ class App {
       .catch(function (error) {
         console.log(error);
       });
-  };
+  }
 
-  // DATABASE
-  // read from real-time database
-  readFromDatabase() {
-    this.database
-      .ref("users/" + this.userUid + "/expenses")
-      .once("value", takeSnapshot);
+  readFirebase() {
     let self = this;
+    this.database
+      .ref("users/" + this.userUID + "/expenses")
+      .once("value", storeSnapshot);
 
-    function takeSnapshot(snapshot) {
-      var entries = snapshot.val();
-      if (entries) {
-        var keys = Object.keys(entries);
-        var totalIncome = 0;
-        var totalExpense = 0;
-        var totalBalance = 0;
-
-        var formattedArray = [];
-        var sortedArray = [];
-        var formattedObject = {};
-
-        // operations through the database
-        for (var i = 0; i < keys.length; i++) {
-          var k = keys[i];
-          var amount = entries[k].amount;
-          if (amount > 0) {
-            totalExpense += amount;
-          } else {
-            totalIncome -= amount;
-          }
-          // format entries (including the parent key)
-          let formattedEntry = {
-            key: keys[i],
-            title: entries[k].title,
-            date: entries[k].date,
-            amount: entries[k].amount,
-            notes: entries[k].notes,
-          }
-          formattedArray.push(formattedEntry);
-        }
-        // sort the formatted array
-        if (self.sortBy) {
-          sortedArray = formattedArray.sort(function (a, b) {
-            if (self.sortBy == "byID") {
-              if (a.key < b.key) {
-                return -1;
-              }
-              if (a.key > b.key) {
-                return 1;
-              }
-              return 0;
-            } else if (self.sortBy == "Category") {
-              if (a.title < b.title) {
-                return -1;
-              }
-              if (a.title > b.title) {
-                return 1;
-              }
-              return 0;
-            } else if (self.sortBy == "Date") {
-              if (a.date < b.date) {
-                return -1;
-              }
-              if (a.date > b.date) {
-                return 1;
-              }
-              return 0;
-            } else if (self.sortBy == "Amount") {
-              if (a.amount < b.amount) {
-                return -1;
-              }
-              if (a.amount > b.amount) {
-                return 1;
-              }
-              return 0;
-            }
-          })
-        } else {
-          console.log("no sortBy state.");
-        }
-        // transform array to object - REVIEW REDUCE_METHOD
-        formattedObject = sortedArray.reduce((acc, val) => {
-          acc[val.key] = val;
-          return acc;
-        }, {});
-        // display entries
-        self.displayExpenses(formattedObject);
-        // display balance
-        totalBalance = totalIncome - totalExpense;
-        // display summary
-        self.incomeAmount.innerHTML = self.formatMoney(totalIncome);
-        self.expenseAmount.innerHTML = self.formatMoney(totalExpense);
-        self.balanceAmount.innerHTML = self.formatMoney(totalBalance);
-        // aesthetic: show transactions list
-        self.transactionsFadeIn();
-      } else {
-        self.incomeAmount.innerHTML = self.formatMoney(0);
-        self.expenseAmount.innerHTML = self.formatMoney(0);
-        self.balanceAmount.innerHTML = self.formatMoney(0);
-        // aesthetic: hide transactions list
-        self.transactionsFadeOut();
+    function storeSnapshot(snapshot) {
+      self.state.storage = [];
+      const entries = snapshot.val();
+      for (let key of Object.keys(entries)) {
+        self.state.storage.push(new Record(key, entries[key].title, entries[key].amount, entries[key].date, entries[key].notes));
       }
+
+      let amounts = self.state.storage.map(a => a.amount);
+      let expenses = amounts.filter(a => a > 0).reduce((a, b) => a + b);
+      let income = amounts.filter(a => a < 0).reduce((a, b) => a + b);
+      let total = amounts.reduce((a, b) => a + b);
+      self.incomeAmount.innerHTML = self.formatMoney(-income);
+      self.expenseAmount.innerHTML = self.formatMoney(expenses);
+      self.balanceAmount.innerHTML = self.formatMoney(-total);
+      self.displayExpenses(self.state.storage);
+
+      self.state = self.state.change('Read database.')
+      console.log(self.state);
     }
-  };
+  }
+
   // push to database
   pushToDatabase(expense) {
-    this.database.ref("users/" + this.userUid + "/expenses").push(expense);
-  };
+    this.database.ref("users/" + this.userUID + "/expenses").push(expense);
+  }
 
   // SYSTEM UTILITIES
   // control radio buttons
@@ -291,7 +242,7 @@ class App {
 
   // FUNCTIONALITIES
   // submit expense
-  submitExpenseForm() {
+  submit() {
     const radioCurrentState = this.radioCurrentState;
     const amountInput = this.amountInput.value;
     const notesInput = this.notesInput.value;
@@ -309,7 +260,7 @@ class App {
             date: generateDate(),
             amount: amount,
             notes: notes
-          };
+          }
           this.pushToDatabase(income);
         } else if (amountInput > 0 && radioCurrentState == null) {
           let amount = parseFloat(amountInput);
@@ -320,7 +271,7 @@ class App {
             date: generateDate(),
             amount: amount,
             notes: notes
-          };
+          }
           this.pushToDatabase(expense);
         } else {
           let amount = parseFloat(amountInput);
@@ -332,7 +283,7 @@ class App {
             date: generateDate(),
             amount: amount,
             notes: notes
-          };
+          }
           this.pushToDatabase(expense);
         }
       } else {
@@ -351,9 +302,9 @@ class App {
             title: "➕",
             amount: amount,
             notes: notes
-          };
+          }
           this.database
-            .ref("users/" + this.userUid + "/expenses/" + this.editID)
+            .ref("users/" + this.userUID + "/expenses/" + this.editID)
             .update(income);
         } else if (amountInput > 0 && radioCurrentState == null) {
           let amount = parseFloat(amountInput);
@@ -363,9 +314,9 @@ class App {
             title: "❓",
             amount: amount,
             notes: notes
-          };
+          }
           this.database
-            .ref("users/" + this.userUid + "/expenses/" + this.editID)
+            .ref("users/" + this.userUID + "/expenses/" + this.editID)
             .update(expense);
         } else if (amountInput > 0 && radioCurrentState == "➕") {
           let amount = parseFloat(amountInput);
@@ -375,9 +326,9 @@ class App {
             title: "❓",
             amount: amount,
             notes: notes
-          };
+          }
           this.database
-            .ref("users/" + this.userUid + "/expenses/" + this.editID)
+            .ref("users/" + this.userUID + "/expenses/" + this.editID)
             .update(expense);
         } else {
           let amount = parseFloat(amountInput);
@@ -388,9 +339,9 @@ class App {
             title: radioCurrentState,
             amount: amount,
             notes: notes
-          };
+          }
           this.database
-            .ref("users/" + this.userUid + "/expenses/" + this.editID)
+            .ref("users/" + this.userUID + "/expenses/" + this.editID)
             .update(expense);
         }
       } else {
@@ -410,54 +361,38 @@ class App {
     }
     this.display.classList.add("display-black");
     this.display.classList.remove("display-blue");
+
+    this.state = this.state.change('Submitted.');
+    console.log(this.state);
   }
 
-  // display database in DOM through Firebase snapshot
-  displayExpenses(snapshot) {
-    this.listBox.innerHTML = "";
-    this.monthDay.innerHTML = "";
-    if (snapshot !== null) {
-      // display today's date
-      let monthDay = document.getElementById("month-day");
-      const div = document.createElement("div");
-      const monthName = generateDate("monthName");
-      const day = generateDate("day");
-      
-      
-      div.innerHTML = `
-        <div class="info-month">${monthName} ${day}</div>
-        `;
-      monthDay.appendChild(div);
-      // for through database entries
-      for (let key of Object.keys(snapshot)) {
-        var category = snapshot[key].title;
-        var amount = snapshot[key].amount;
-        var amountFormatted = this.formatMoney(amount);
-        var date = snapshot[key].date;        
-        var notes = snapshot[key].notes;
-        var displayDate = generateDate('month-day', date);
-        // append entry[n] to DOM
-        let expenseList = document.getElementById("list-box");
-        const div = document.createElement("div");
-        div.classList.add("expense");
-        div.innerHTML = `
-        <div class="expense-title">${category}</div>
-        <div class="expense-date">${displayDate}</div>
-        <div class="expense-amount">${amountFormatted}</div>
-        <div class="expense-notes">${notes}</div>
+  displayExpenses(database) {
+    if (database.length == 0) throw "Database is empty.";
+    this.data.innerHTML = "";
+    this.headerDate.innerHTML = `${generateDate("monthName")}, ${generateDate("day")}`;
+
+    for (let entry of database) {
+      let entryDiv = document.createElement("div");
+      entryDiv.classList.add("expense");
+      entryDiv.innerHTML = `
+        <div class="expense-title">${entry.title}</div>
+        <div class="expense-date">${generateDate('month-day', entry.date)}</div>
+        <div class="expense-amount">${this.formatMoney(entry.amount)}</div>
+        <div class="expense-notes">${entry.notes}</div>
         <div class="expense-icons">
-          <a href="#" class="edit-icon" data-id="${key}">
+          <a href="#" class="edit-icon" data-id="${entry.id}">
             <div class="edit-icon">🖍</div>
           </a>
-          <a href="#" class="delete-icon" data-id="${key}">
+          <a href="#" class="delete-icon" data-id="${entry.id}">
             <div class="delete-icon">❌</div>
           </a>
         </div>
         `;
-        expenseList.appendChild(div);
-      }
+      this.expenseList.appendChild(entryDiv);
+      this.transactionsFadeIn();
     }
-  };
+    // HOLD ON
+  }
 
   // edit expense
   editExpense(element) {
@@ -480,14 +415,14 @@ class App {
     if (notes == "") {
       this.notesInput.placeholder = "";
     }
-  };
+  }
 
   // delete expense
   deleteExpense(element) {
     let id = element.dataset.id;
-    this.database.ref("users/" + this.userUid + "/expenses/" + id).remove();
-  };
-};
+    this.database.ref("users/" + this.userUID + "/expenses/" + id).remove();
+  }
+}
 
 // event listeners
 function initialize() {
@@ -501,7 +436,8 @@ function initialize() {
   const infoRow = document.getElementById('info-row');
 
   // new instance of UI CLASS
-  const app = new App();
+  var app = new App();
+  console.log(app.state);
   // utility to see who's in
   app.authState();
   // reset radio at startup
@@ -514,9 +450,9 @@ function initialize() {
   loginForm.onkeydown = function (e) {
     if (e.keyCode == 13) {
       app.signUpFirebase();
-      app.readFromDatabase();
+      app.readFirebase();
     }
-  };
+  }
   logOutButton.addEventListener("click", () => {
     app.signOutFirebase();
     window.location.reload();
@@ -532,7 +468,7 @@ function initialize() {
       app.editMode == false) {
       app.deleteExpense(event.target.parentElement);
     }
-    app.readFromDatabase();
+    app.readFirebase();
   });
   // category change
   for (let i = 0; i < radioCategories.length; i++) {
@@ -543,9 +479,8 @@ function initialize() {
   // sorting change
   infoRow.addEventListener('click', (e) => {
     app.sortBy = e.target.innerHTML;
-    app.readFromDatabase();
+    app.readFirebase();
   })
-
   // display color change
   amountInput.addEventListener("input", function () {
     app.changeTextColor();
@@ -560,11 +495,11 @@ function initialize() {
   // form submit on "enter"
   expenseForm.onkeydown = function (e) {
     if (e.keyCode == 13) {
-      app.submitExpenseForm();
-      app.readFromDatabase();
-    };
-  };
-};
+      app.submit();
+      app.readFirebase();
+    }
+  }
+}
 
 // START
 // when DOMContentLoaded function eventListeners loads
