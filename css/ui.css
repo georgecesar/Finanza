@@ -18,11 +18,21 @@ html {
 
 body {
   height: 100%;
-  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
   font-weight: 500;
   display: flex;
   flex-flow: column;
   color: #1d1d1c;
+}
+
+.green {
+  background: #2ecc71 !important;
+  color: white;
+}
+
+.red {
+  background: #e74c3c !important;
+  color: white;
 }
 
 .max-opacity {
@@ -456,8 +466,18 @@ a {
   .expense {
     padding: 0 0.5rem;
   }
+
+  .green {
+    background-color: #2e2e2d !important;
+    color: #2ecc71;
+  }
+
+  .red {
+    background-color: #2e2e2d !important;
+    color: #e74c3c;
+  }
 }
-@media screen and (max-width: 812px) and (orientation: portrait) {
+@media (orientation: portrait) {
   .expense-icons, .expense-notes, .expense-notes-info, .info-row :last-child {
     display: none;
   }

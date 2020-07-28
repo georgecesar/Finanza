@@ -1,3 +1,5 @@
+'use strict';
+
 import generateDate from "./date.js";
 
 class State {
@@ -29,9 +31,14 @@ class Record {
 
 class App {
   constructor() {
-    this.database = firebase.database();
     this.state = new State;
     this.history = [];
+    this.radioCurrentState = "";
+    this.editMode = false;
+    this.editID;
+    this.userUID;
+    this.sortBy = "byID";
+    this.database = firebase.database();
     this.container = document.getElementById("container");
     this.incomeAmount = document.getElementById("budget-amount");
     this.expenseAmount = document.getElementById("expense-amount");
@@ -41,9 +48,6 @@ class App {
     this.radioCategories = document.getElementsByName("radio-category");
     this.amountInput = document.getElementById("amount-input");
     this.notesInput = document.getElementById("notes-input");
-    this.radioCurrentState = "";
-    this.editMode = false;
-    this.editID;
     this.display = document.getElementById("display");
     this.data = document.getElementById("list-box");
     this.headerDate = document.getElementById("month-day");
@@ -51,8 +55,6 @@ class App {
     this.userEmail = document.getElementById("userEmail");
     this.userPassword = document.getElementById("userPassword");
     this.loginBox = document.getElementById("login-box");
-    this.userUID;
-    this.sortBy = "byID";
     this.expenseList = document.getElementById("list-box");
   }
 
@@ -108,7 +110,7 @@ class App {
     }, 250);
   }
 
-  // AUTHENTICATION
+  // AUTH
   // check authentication state
   authState() {
     let self = this;
@@ -181,12 +183,19 @@ class App {
       let amounts = self.state.storage.map(a => a.amount);
       let expenses = amounts.filter(a => a > 0).reduce((a, b) => a + b);
       let income = amounts.filter(a => a < 0).reduce((a, b) => a + b);
-      let total = amounts.reduce((a, b) => a + b);
+      let balance = amounts.reduce((a, b) => a + b);
       self.incomeAmount.innerHTML = self.formatMoney(-income);
       self.expenseAmount.innerHTML = self.formatMoney(expenses);
-      self.balanceAmount.innerHTML = self.formatMoney(-total);
+      self.balanceAmount.innerHTML = self.formatMoney(-balance);
+      // colorize balance
+      if (-balance > 0) {
+        document.querySelector('.balance').classList.remove('red');
+        document.querySelector('.balance').classList.add('green');
+      } else {
+        document.querySelector('.balance').classList.remove('green');
+        document.querySelector('.balance').classList.add('red');
+      }
       self.displayExpenses(self.state.storage);
-
       self.state = self.state.change('Read database.')
       console.log(self.state);
     }
@@ -424,7 +433,6 @@ class App {
   }
 }
 
-// event listeners
 function initialize() {
   const radioCategories = document.getElementsByName("radio-category");
   const amountInput = document.getElementById("amount-input");
