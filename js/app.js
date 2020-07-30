@@ -195,8 +195,8 @@ class App {
         document.querySelector('.balance').classList.remove('green');
         document.querySelector('.balance').classList.add('red');
       }
-      self.displayExpenses(self.state.storage);
-      self.state = self.state.change('Read database.')
+      self.displayExpenses(self.state.storage.reverse());
+      self.state = self.state.change('Read database.');
       console.log(self.state);
     }
   }
