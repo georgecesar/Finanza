@@ -1,0 +1,243 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+input {
+  -webkit-appearance: none;
+  appearance: none;
+  border: none;
+  color: inherit;
+  font-family: inherit;
+  font-weight: normal;
+  background: none;
+  font-size: 0.9rem;
+}
+input:focus {
+  outline: none;
+}
+input[type=number]::-webkit-inner-spin-button, input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+a:link, a:visited, a:hover, a:active {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 0.25rem;
+  border-radius: 0.4166666667rem;
+  border: none;
+  color: #80807f;
+  background-color: #dfdfdf;
+}
+
+h1 {
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+h2 {
+  font-size: 1.25rem;
+  margin-bottom: 0.25rem;
+}
+
+h3 {
+  font-size: 0.9rem;
+}
+
+p {
+  font-size: 0.85rem;
+}
+
+html, body {
+  background-color: #fafaf9;
+  height: 100%;
+}
+
+body {
+  color: #1d1d1c;
+  font-family: -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
+  font-weight: 500;
+  padding: 0.5rem;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+}
+
+.login-container {
+  z-index: 10;
+  position: absolute;
+  top: 10%;
+  left: 50%;
+  transform: translate(-50%, -10%);
+  min-width: 320px;
+  max-width: 40ch;
+  background-color: white;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+  border-radius: 1.25rem;
+  padding: 2rem;
+}
+.login-container p {
+  color: #8d8d8c;
+  font-size: 0.95rem;
+  margin-bottom: 1rem;
+}
+.login-container form {
+  display: flex;
+  flex-flow: column;
+}
+.login-container form label {
+  position: relative;
+  text-align: right;
+  height: 100%;
+  border-radius: 0.4166666667rem;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  box-shadow: 0px 0px 3px rgba(0, 0, 0, 0.1);
+}
+.login-container form label #login-enter {
+  color: #8d8d8c;
+  font-weight: 400;
+  font-size: 1.2rem;
+  position: absolute;
+  top: 50%;
+  right: 0.25rem;
+  transform: translateY(-50%);
+  transition: opacity 1s;
+}
+.login-container form label input {
+  padding: 0.25rem;
+  width: 100%;
+}
+.login-container form label:first-child {
+  margin-bottom: 0.5rem;
+}
+.login-container form label::placeholder {
+  color: #8d8d8c;
+}
+
+.container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0.5rem;
+  transition: filter 1s;
+}
+
+.blurry {
+  filter: blur(3px) grayscale(100);
+}
+
+#entry-form {
+  position: relative;
+  overflow: hidden;
+  border-radius: 0.7142857143rem;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+}
+#entry-form .display {
+  position: relative;
+  flex: 1;
+  padding: 0.3rem 0.6rem;
+  color: #fafaf9;
+  background-color: black;
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+}
+#entry-form .display input {
+  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+}
+#entry-form .display #display-amount {
+  flex: 1;
+  text-align: right;
+  font-size: 2rem;
+}
+#entry-form .display ::placeholder {
+  color: #8d8d8c;
+}
+#entry-form .categories-selector {
+  display: flex;
+}
+#entry-form .categories-selector label {
+  position: relative;
+  padding: 0.35rem;
+  flex: 1;
+  background-color: #dfdfdf;
+  font-size: 1.5rem;
+  display: grid;
+  justify-items: center;
+  align-items: center;
+}
+#entry-form .categories-selector label input[type=radio] {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.element {
+  color: #80807f;
+  background: #dfdfdf;
+  border-radius: 0.7142857143rem;
+  padding: 0.25rem 0.5rem;
+}
+.element ol {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) 1.5fr;
+  margin-bottom: 0.2rem;
+  padding-bottom: 0.1rem;
+}
+.element .list {
+  display: grid;
+  grid-auto-rows: 1.5rem;
+}
+.element .list > :nth-child(odd) {
+  background-color: #d4d4d3;
+  border-radius: 0.3125rem;
+}
+.element .entry {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr) 1.5fr;
+}
+.element .entry p {
+  display: flex;
+  align-items: center;
+}
+.element .entry .icon {
+  padding: 0 0.2rem;
+}
+
+#summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12ch, 1fr));
+  gap: 0.5rem;
+}
+#summary p {
+  text-align: right;
+  font-size: 1rem;
+}
+#summary .element {
+  display: flex;
+  flex-flow: column;
+  justify-content: space-between;
+}
+
+footer {
+  margin-top: 1rem;
+  color: #80807f;
+}
+
+.hidden {
+  visibility: hidden;
+}
+
+/*# sourceMappingURL=style.css.map */

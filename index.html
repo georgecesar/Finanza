@@ -3,7 +3,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link rel="stylesheet" href="css/ui.css">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/crt.css">
   <link rel="apple-touch-icon" sizes="180x180" href="favicon/apple-touch-icon.png">
   <link rel="icon" type="image/png" sizes="32x32" href="favicon/favicon-32x32.png">
   <link rel="icon" type="image/png" sizes="16x16" href="favicon/favicon-16x16.png">
@@ -12,77 +13,119 @@
   <meta name="msapplication-TileColor" content="#da532c">
   <meta name="theme-color" content="#ffffff">
   <title>Finanza</title>
+  <script src="https://www.gstatic.com/firebasejs/7.17.2/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.17.2/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.17.2/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/7.17.2/firebase-database.js"></script>
+  <script src="js/2.0.0/firebase.js" type="module"></script>
+  <script src="js/2.0.0/auth.js" type="module"></script>
+  <script src="js/2.0.0/entry.js" type="module"></script>
+  <script src="js/2.0.0/element.js" type="module"></script>
+  <script src="js/2.0.0/ui.js" type="module"></script>
+  <script src="js/2.0.0/app.js" type="module" defer></script>
 </head>
 <body>
-  <div class="login-box no-show min-opacity" id="login-box">
-    <div class="welcome">Welcome to Finanza</div>
-    <div class="introduction-message">Finanza is a simple web-app to help you monitor your budget.</div>
+  <div class="login-container">
+    <h1>Welcome to Finanza</h1>
+    <p>Finanza is a simple web-app to help you monitor your budget and track your spending habits.</p>
     <form id="login-form">
-      <input id="userEmail" type="email" name="userEmail" placeholder="Email">
-      <input id="userPassword" type="password" name="userPassword" placeholder="Password">
+      <label for="userEmail">
+        <input id="user-email" type="email" name="userEmail" placeholder="Email">
+      </label>
+      <label for="userPassword"><a href="http://google.com/" id="login-enter">→</a>
+        <input id="user-password" type="password" name="userPassword" placeholder="Password">
+      </label>
     </form>
   </div>
-  <div class="container" id="container">
-    <form class="expense-form" id="expense-form">
-      <div class="display" id="display">
-        <input class="notes-display" id="notes-input" type="text" placeholder="Notes">
-        <input class="amount-display" id="amount-input" type="text" placeholder="$" autofocus>
+  <div class="container blurry">
+    <form id="entry-form">
+      <div class="display crt">
+        <div>
+          <input id="display-notes" type="text" placeholder="Notes" name="display-fields">
+          <input id="display-date" type="text" placeholder="Date" name="display-fields">
+        </div>
+        <input id="display-amount" type="number" placeholder="$" autofocus name="display-fields">
       </div>
-      <div class="categories-icons" id="expense-input">
-        <label class="radio-zone dark-label first">
-          <input class="radio-button" type="radio" name="radio-category" value="🍕">          &#x1F355;
+      <div class="categories-selector">
+        <label for="food">🍕
+          <input class="radio" type="radio" id="food" name="category" value="🍕">
         </label>
-        <label class="radio-zone dark-label">
-          <input class="radio-button" type="radio" name="radio-category" value="⛽️">          &#x26FD;&#xFE0F;
+        <label for="gas">⛽️
+          <input class="radio" type="radio" id="gas" name="category" value="⛽️">
         </label>
-        <label class="radio-zone dark-label">
-          <input class="radio-button" type="radio" name="radio-category" value="⚙️">          &#x2699;&#xFE0F;
+        <label for="utilities">⚙️
+          <input class="radio" type="radio" id="utilities" name="category" value="⚙️">
         </label>
-        <label class="radio-zone dark-label last">
-          <input class="radio-button" type="radio" name="radio-category" value="🥑">          &#x1F951;
+        <label for="groceries">🥑
+          <input class="radio" type="radio" id="groceries" name="category" value="🥑">
+        </label>
+        <label for="housing">🏠
+          <input class="radio" type="radio" id="housing" name="category" value="🏠">
+        </label>
+        <label for="car-insurance">🚗
+          <input class="radio" type="radio" id="car-insurance" name="category" value="🚗">
+        </label>
+        <label for="subscriptions">📻
+          <input class="radio" type="radio" id="subscriptions" name="category" value="📻">
         </label>
       </div>
-      <button class="submit-button" id="expense-submit" type="submit">Add</button>
     </form>
-    <div class="summary" id="summary">
-      <div class="income"><span class="text-uppercase info-title">Income</span><span class="budget-icon"><i class="fas fa-money-bill-alt"></i></span><span class="info-amount" id="budget"><span id="budget-amount">0</span></span></div>
-      <div class="expenses"><span class="text-uppercase info-title">Expenses</span><span class="expense-icon"><i class="far fa-credit-card"></i></span><span class="info-amount" id="expense"><span id="expense-amount">0</span></span></div>
-      <div class="balance"><span class="text-uppercase info-title">Balance</span><span class="balance-icon"><i class="fas fa-dollar-sign"></i></span><span class="info-amount" id="balance"><span id="balance-amount">0</span></span></div>
-    </div>
-    <div class="transactions min-opacity" id="transactions">
-      <div class="month-day" id="month-day"></div>
-      <div class="info-row" id="info-row">
-        <div class="expense-title-info">Category</div>
-        <div class="expense-date-info">Date</div>
-        <div class="expense-amount-info">Amount</div>
-        <div class="expense-notes-info">Notes</div>
-        <div></div>
+    <div id="summary">
+      <div class="element">
+        <h3>Income</h3>
+        <p id="income">0</p>
       </div>
-      <div class="list-box" id="list-box"></div>
+      <div class="element">
+        <h3>Expenses</h3>
+        <p id="expenses">0</p>
+      </div>
+      <div class="element">
+        <h3>Balance</h3>
+        <p id="balance">0</p>
+      </div>
+      <div class="element">
+        <h3>Fixed</h3>
+        <p id="fixed">0</p>
+      </div>
+    </div>
+    <div class="element">
+      <h2>This Month</h2>
+      <ol>
+        <p>Category</p>
+        <p>Date</p>
+        <p>Amount</p>
+        <p>Notes</p>
+      </ol>
+      <div class="list" id="this-month">
+        <div class="entry">
+          <p class="icon">🍕 Food</p>
+          <p>6/12</p>
+          <p>$12.56</p>
+          <p>Pizza</p>
+        </div>
+      </div>
+    </div>
+    <div class="element">
+      <h2>Last Month</h2>
+      <ol>
+        <p>Category</p>
+        <p>Date</p>
+        <p>Amount</p>
+        <p>Notes</p>
+      </ol>
+      <div class="list" id="last-month">
+        <div class="entry">
+          <p class="icon">🍕 Food</p>
+          <p>6/12</p>
+          <p>$12.56</p>
+          <p>Pizza</p>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="footer" id="footer">
-    <button class="log-out-button" id="log-out-button">Log out</button><span class="copyright">Copyright &copy; 2020 George Cesar &mdash; All rights reserved.</span>
-  </div>
-  <script src="js/accounting.js"></script>
-  <script type="module" src="js/date.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-auth.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-firestore.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/7.11.0/firebase-database.js"></script>
-  <script>
-    //- Firebase configuration
-    var firebaseConfig = {
-    apiKey: "AIzaSyAI3ttWz-31uUi99QDp0HtUHJldgzt4_wk",
-    authDomain: "finances-app-v1.firebaseapp.com",
-    databaseURL: "https://finances-app-v1.firebaseio.com",
-    projectId: "finances-app-v1",
-    storageBucket: "finances-app-v1.appspot.com",
-    messagingSenderId: "580579540966",
-    appId: "1:580579540966:web:dfe5867eb9b1ba97e2a027"
-    };
-    //- Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-  </script>
-  <script type="module" src="js/app.js"></script>
+  <footer>
+    <button id="log-out-button">Log out</button>
+    <button id="hide">Toggle Login</button>
+    <p>Copyright &copy; 2020 George Cesar &mdash; All rights reserved.</p>
+  </footer>
 </body>

@@ -1,0 +1,19 @@
+{
+  "name": "finanza",
+  "version": "2.0.0",
+  "description": "Finanza is a simple web-app to help you monitor your budget and track your spending habits.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/georgecesar/finanza.git"
+  },
+  "author": "Giorgio Cesaroni",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/georgecesar/finanza/issues"
+  },
+  "homepage": "https://georgecesar.github.io/finanza"
+}
